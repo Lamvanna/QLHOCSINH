@@ -9,5 +9,9 @@
 Thumbs.db
 desktop.ini
 
+# Environment files
+.env
+!.env.example
+
 # Logs and cache
 *.log

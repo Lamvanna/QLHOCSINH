@@ -1,9 +1,12 @@
 <?php
 // config/constants.php
 
-define('APP_NAME', 'EduManage – Student Management System');
-define('APP_VERSION', '2.0.0');
-define('BASE_URL', '/QLHOCSINH');
+require_once __DIR__ . '/../core/Env.php';
+Env::load(dirname(__DIR__) . '/.env');
+
+define('APP_NAME', env('APP_NAME', 'EduManage – Student Management System'));
+define('APP_VERSION', env('APP_VERSION', '2.0.0'));
+define('BASE_URL', env('BASE_URL', '/QLHOCSINH'));
 
 // Role constants
 define('ROLE_SUPER_ADMIN', 'super_admin');
