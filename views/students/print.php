@@ -171,7 +171,8 @@
             line-height: 1.3;
         }
         table.student-table th, table.student-table td {
-            border: 1px solid #444 !important;
+            border: 0.5px solid #777 !important;
+            border-width: 0.5px !important;
             padding: 3.5px 4px !important;
             vertical-align: middle !important;
             overflow: hidden !important;
@@ -250,7 +251,8 @@
             }
             table.student-table th,
             table.student-table td {
-                border: 1px solid #333 !important;
+                border: 0.5px solid #777 !important;
+                border-width: 0.5px !important;
                 padding: 3.5px 4px !important;
             }
             table.student-table th {
@@ -439,17 +441,20 @@
                                 </p>
                             </div>
 
+                            <?php $isSingleClass = !empty($selectedClass); ?>
                             <!-- Student Table -->
                             <table class="student-table">
                                 <thead>
                                     <tr>
-                                        <th class="col-stt">STT</th>
-                                        <th class="col-code">Mã HS</th>
-                                        <th class="col-name" style="text-align:left;padding-left:5px;">Họ Và Tên</th>
-                                        <th class="col-gender">Giới Tính</th>
-                                        <th class="col-dob">Ngày Sinh</th>
-                                        <th class="col-class">Lớp</th>
-                                        <th class="col-note">Ghi Chú</th>
+                                        <th style="width: <?= $isSingleClass ? '6%' : '5%' ?>;">STT</th>
+                                        <th style="width: <?= $isSingleClass ? '16%' : '14%' ?>;">Mã HS</th>
+                                        <th style="width: <?= $isSingleClass ? '34%' : '30%' ?>; text-align:left; padding-left:6px;">Họ Và Tên</th>
+                                        <th style="width: <?= $isSingleClass ? '11%' : '10%' ?>;">Giới Tính</th>
+                                        <th style="width: <?= $isSingleClass ? '15%' : '13%' ?>;">Ngày Sinh</th>
+                                        <?php if (!$isSingleClass): ?>
+                                            <th style="width: 10%;">Lớp</th>
+                                        <?php endif; ?>
+                                        <th style="width: <?= $isSingleClass ? '18%' : '18%' ?>;">Ghi Chú</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -458,15 +463,17 @@
                                         <tr>
                                             <td class="c b"><?= $idx + 1 ?></td>
                                             <td class="c b mono"><?= htmlspecialchars($s['student_code']) ?></td>
-                                            <td class="l b" style="padding-left:5px;"><?= htmlspecialchars($s['full_name']) ?></td>
+                                            <td class="l b" style="padding-left:6px;"><?= htmlspecialchars($s['full_name']) ?></td>
                                             <td class="c"><?= $s['gender'] === 'female' ? 'Nữ' : 'Nam' ?></td>
                                             <td class="c"><?= !empty($s['dob']) ? date('d/m/Y', strtotime($s['dob'])) : '' ?></td>
-                                            <td class="c b"><?= htmlspecialchars($s['class_name'] ?? '') ?></td>
+                                            <?php if (!$isSingleClass): ?>
+                                                <td class="c b"><?= htmlspecialchars($s['class_name'] ?? '') ?></td>
+                                            <?php endif; ?>
                                             <td></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="7" style="text-align:center;padding:20px;font-style:italic;">Không có dữ liệu.</td></tr>
+                                        <tr><td colspan="<?= $isSingleClass ? 6 : 7 ?>" style="text-align:center;padding:20px;font-style:italic;">Không có dữ liệu.</td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
