@@ -1,0 +1,9 @@
+RewriteEngine On
+RewriteBase /QLHOCSINH/
+
+# If file or folder exists, serve directly
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Otherwise route to index.php
+RewriteRule ^(.*)$ index.php [QSA,L]
