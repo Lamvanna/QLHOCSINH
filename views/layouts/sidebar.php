@@ -78,12 +78,14 @@ function isActive(string $route): string {
                 </a>
                 <?php endif; ?>
 
-                <?php if (Permission::can('semesters.view')): ?>
+                <?php /* TẠM KHÓA PHẦN HỌC KỲ (Mở lại khi cần dùng)
+<?php if (Permission::can('semesters.view')): ?>
                 <a href="<?= BASE_URL ?>/semesters" class="flex items-center px-3 py-2 rounded-lg transition-colors <?= isActive('/semesters') ?>">
                     <i data-lucide="clock" class="w-4 h-4 mr-3 flex-shrink-0"></i>
                     <span>Học kỳ</span>
                 </a>
                 <?php endif; ?>
+                */ ?>
             </div>
         </div>
         <?php endif; ?>

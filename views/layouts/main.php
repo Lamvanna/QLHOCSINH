@@ -58,6 +58,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <style>
+        @media print { aside, header, nav, #toast-container { display: none !important; } main { margin: 0 !important; padding: 0 !important; width: 100% !important; } }
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f8faff;
@@ -297,7 +298,16 @@
                     },
                     body: JSON.stringify(data)
                 });
-                const result = await response.json();
+                const rawText = await response.text();
+                // Strip UTF-8 BOM if present
+                const cleanText = rawText.replace(/^\uFEFF/, '').trim();
+                let result;
+                try {
+                    result = JSON.parse(cleanText);
+                } catch (jsonErr) {
+                    showToast('Lỗi phân tích dữ liệu máy chủ: ' + jsonErr.message, 'error');
+                    return null;
+                }
                 if (!response.ok || !result.success) {
                     showToast(result.message || 'Đã xảy ra lỗi!', 'error');
                     return null;

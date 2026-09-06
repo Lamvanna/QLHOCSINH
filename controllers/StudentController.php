@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // controllers/StudentController.php
 require_once __DIR__ . '/BaseController.php';
 
@@ -30,8 +30,11 @@ class StudentController extends BaseController {
         $grades = GradeLevel::all('order_index ASC');
         $years = AcademicYear::all('id DESC');
 
+        $allStudentsForExport = Student::getPaginated(1, 100000, $filters)['data'] ?? [];
+
         View::render('students/index', [
             'students' => $studentsData['data'],
+            'allStudentsForExport' => $allStudentsForExport,
             'pagination' => $studentsData,
             'classes' => $classes,
             'grades' => $grades,

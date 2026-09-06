@@ -1,12 +1,16 @@
 <?php
-// views/students/print.php - Multi-page A4 Print with Word-style Margins & Page Setup
+// views/subjects/print.php - Multi-page A4 Print for Subjects with Word-style Margins
+$totalSubjects = count($subjects);
+$totalPeriods = array_sum(array_column($subjects, 'periods_per_week'));
 ?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>In Danh Sách</title>
+    <title>In Danh Mục Môn Học - Trường THCS & THPT EduManage</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* ===== RESET ===== */
@@ -14,19 +18,23 @@
 
         body {
             font-family: 'Times New Roman', Times, serif;
+            font-size: 13px;
+            line-height: 1.35;
             color: #000;
             background: #475569;
-            line-height: 1.4;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            min-height: 100vh;
         }
 
-        /* ===== TOOLBAR (SCREEN ONLY) ===== */
+        /* ===== TOOLBAR ===== */
         .toolbar {
-            background: #0f172a;
-            color: #fff;
             position: sticky;
             top: 0;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
             z-index: 200;
             font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
             border-bottom: 1px solid #334155;
@@ -36,9 +44,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 20px;
-            gap: 12px;
             flex-wrap: wrap;
+            gap: 12px;
         }
         .toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 10px; }
         .toolbar a, .toolbar button, .toolbar .btn {
@@ -48,11 +55,11 @@
         }
         .toolbar a { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
         .toolbar a:hover { background: #334155; color: #fff; }
-        .btn-print { background: #059669 !important; color: #fff !important; border: none !important; font-size: 13px !important; padding: 8px 20px !important; }
-        .btn-print:hover { background: #10b981 !important; }
+        .btn-print { background: #006c4a !important; color: #fff !important; border: none !important; font-size: 13px !important; padding: 8px 20px !important; }
+        .btn-print:hover { background: #005137 !important; }
         .btn-settings { background: #1e293b !important; color: #e2e8f0 !important; border: 1px solid #475569 !important; }
         .btn-settings:hover { background: #334155 !important; }
-        .btn-settings.active { background: #334155 !important; border-color: #60a5fa !important; color: #60a5fa !important; }
+        .btn-settings.active { background: #334155 !important; border-color: #10b981 !important; color: #10b981 !important; }
         .toolbar select {
             background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
             padding: 7px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer;
@@ -63,13 +70,13 @@
         .settings-panel { display: none; background: #1e293b; border-top: 1px solid #334155; padding: 14px 20px; }
         .settings-panel.open { display: block; }
         .settings-grid { display: flex; align-items: flex-start; gap: 28px; flex-wrap: wrap; }
-        .settings-section { display: flex; flex-direction: column; gap: 2px; }
         .settings-section-title {
-            font-size: 11px; font-weight: 700; color: #60a5fa;
-            text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
-            font-family: 'Inter', sans-serif;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 8px;
         }
-        .margin-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .margin-row {
+            display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+        }
         .margin-row label {
             font-size: 12px; color: #cbd5e1; font-weight: 500;
             width: 65px; text-align: right; font-family: 'Inter', sans-serif;
@@ -79,7 +86,7 @@
             background: #0f172a; color: #f1f5f9; font-size: 12px; font-family: 'Inter', sans-serif;
             font-weight: 600; text-align: center;
         }
-        .margin-row input:focus { outline: none; border-color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.2); }
+        .margin-row input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.2); }
         .margin-row .unit { font-size: 11px; color: #64748b; font-family: 'Inter', sans-serif; }
         .margin-row select {
             padding: 5px 8px; border: 1px solid #475569; border-radius: 5px;
@@ -91,16 +98,16 @@
             position: relative; border-radius: 2px; margin-top: 18px;
         }
         .settings-preview-inner {
-            position: absolute;
-            background: repeating-linear-gradient(0deg, #94a3b8 0px, #94a3b8 1px, transparent 1px, transparent 5px);
+            position: absolute; border: 1px dashed #10b981;
+            background: repeating-linear-gradient(0deg, #e2e8f0, #e2e8f0 1px, transparent 1px, transparent 5px);
             opacity: 0.4;
         }
-        .btn-apply { background: #2563eb !important; color: #fff !important; border: none !important; font-size: 12px !important; padding: 7px 18px !important; border-radius: 5px !important; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; margin-top: 18px; }
-        .btn-apply:hover { background: #3b82f6 !important; }
+        .btn-apply { background: #006c4a !important; color: #fff !important; border: none !important; font-size: 12px !important; padding: 7px 18px !important; border-radius: 5px !important; cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600; margin-top: 18px; }
+        .btn-apply:hover { background: #005137 !important; }
         .btn-reset { background: transparent !important; color: #94a3b8 !important; border: 1px solid #475569 !important; font-size: 11px !important; padding: 5px 12px !important; border-radius: 5px !important; cursor: pointer; font-family: 'Inter', sans-serif; margin-top: 18px; margin-left: 6px; }
         .btn-reset:hover { border-color: #94a3b8 !important; color: #fff !important; }
 
-        /* ===== SCREEN PREVIEW ===== */
+        /* ===== SCREEN PREVIEW (A4 KHỔ DỌC) ===== */
         .paper-wrapper {
             padding: 25px 15px;
             display: flex;
@@ -122,95 +129,133 @@
             border: none;
         }
         table.master-layout > thead > tr > td,
-        table.master-layout > tbody > tr > td,
         table.master-layout > tfoot > tr > td {
             border: none;
             padding: 0;
         }
+        table.master-layout > tbody > tr > td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
 
-        .margin-spacer-top {
-            height: 17.78mm;
-            display: block;
-        }
-        .margin-spacer-bottom {
-            height: 17.78mm;
-            display: block;
-        }
-        .content-container {
-            padding-left: 17.78mm;
-            padding-right: 17.78mm;
-            width: 100%;
-        }
+        .margin-spacer-top    { height: 17.78mm; }
+        .margin-spacer-bottom { height: 17.78mm; }
+        .content-container    { padding: 0 17.78mm; }
 
         /* ===== DOCUMENT HEADER ===== */
-        .doc-header { display: table; width: 100%; margin-bottom: 5mm; }
-        .doc-header-left, .doc-header-right { display: table-cell; vertical-align: top; width: 50%; }
-        .doc-header-left { text-align: left; }
-        .doc-header-right { text-align: center; }
-        .doc-header p { margin: 0; font-size: 12px; line-height: 1.45; }
-        .doc-header .org-name { font-weight: bold; font-size: 12.5px; text-transform: uppercase; }
-        .doc-header .school-name { font-weight: 900; font-size: 13.5px; text-transform: uppercase; }
-        .doc-header .school-code { font-style: italic; color: #555; font-size: 10.5px; }
-        .doc-header .republic { font-weight: bold; font-size: 12px; text-transform: uppercase; }
-        .doc-header .motto { font-weight: bold; font-size: 12px; }
-        .doc-header .divider { font-size: 11px; color: #666; }
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5mm;
+        }
+        .header-left {
+            text-align: center;
+            font-size: 11.5px;
+            line-height: 1.35;
+        }
+        .header-left .org-upper { font-weight: bold; font-size: 11.5px; }
+        .header-left .school-name { font-weight: bold; font-size: 12px; text-transform: uppercase; }
+        .header-left .school-code { font-size: 10.5px; font-style: italic; color: #333; }
 
-        /* ===== DOCUMENT TITLE ===== */
-        .doc-title { text-align: center; margin-bottom: 5mm; }
-        .doc-title h1 { font-size: 19px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
-        .doc-title h2 { font-size: 14px; font-weight: bold; text-transform: uppercase; margin-bottom: 3px; }
-        .doc-title .meta { font-size: 11.5px; font-style: italic; color: #444; }
-        .doc-title .meta strong { color: #000; }
+        .header-right {
+            text-align: center;
+            font-size: 11.5px;
+            line-height: 1.35;
+        }
+        .header-right .country { font-weight: bold; font-size: 12px; }
+        .header-right .motto   { font-weight: bold; font-size: 11.5px; }
+        .header-right .hr-rule {
+            width: 110px; margin: 3px auto 0 auto;
+            border: none; border-top: 1px solid #000;
+        }
 
-        /* ===== DATA TABLE ===== */
-        table.student-table {
+        /* ===== TITLE ===== */
+        .title-block {
+            text-align: center;
+            margin-bottom: 5mm;
+        }
+        .title-block h1 {
+            font-size: 17px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 3px;
+        }
+        .title-block .subtitle {
+            font-size: 12.5px;
+            font-style: italic;
+            color: #222;
+        }
+        .title-block .meta-info {
+            font-size: 11.5px;
+            color: #444;
+            margin-top: 2px;
+        }
+
+        /* ===== SUBJECT TABLE ===== */
+        table.subject-table {
             width: 100% !important;
             border-collapse: collapse !important;
-            table-layout: fixed !important;
-            font-size: 12px;
-            line-height: 1.3;
-        }
-        table.student-table th, table.student-table td {
-            border: 0.5px solid #777 !important;
+            border: 0.5px solid #000 !important;
             border-width: 0.5px !important;
-            padding: 3.5px 4px !important;
+            table-layout: auto !important;
+            font-size: 12px;
+            line-height: 1.35;
+        }
+        table.subject-table th, table.subject-table td {
+            border: 0.5px solid #000 !important;
+            border-width: 0.5px !important;
+            padding: 6px 8px !important;
             vertical-align: middle !important;
             overflow: hidden !important;
-            word-wrap: break-word !important;
         }
-        table.student-table thead {
+        table.subject-table thead {
             display: table-header-group !important;
         }
-        table.student-table th {
+        table.subject-table th {
             background-color: #f1f5f9 !important;
             font-weight: bold !important;
             text-align: center !important;
-            text-transform: uppercase !important;
-            font-size: 11px !important;
+            font-size: 11.5px !important;
+            text-transform: uppercase;
         }
         td.c { text-align: center; }
         td.l { text-align: left; }
+        td.r { text-align: right; }
         td.b { font-weight: bold; }
-        td.mono { font-family: 'Courier New', monospace; }
-        .col-stt { width: 5%; }
-        .col-code { width: 14%; }
-        .col-name { width: 30%; }
-        .col-gender { width: 10%; }
-        .col-dob { width: 13%; }
-        .col-class { width: 10%; }
-        .col-note { width: 18%; }
+        td.mono { font-family: 'Courier New', monospace; font-weight: bold; }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .status-active { color: #006c4a; }
+        .status-inactive { color: #dc2626; }
 
         /* ===== SIGNATURES ===== */
-        .signatures { display: table; width: 100%; margin-top: 8mm; font-size: 12px; }
-        .sig-col { display: table-cell; width: 33.33%; text-align: center; vertical-align: top; }
-        .sig-title { font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
-        .sig-hint { font-style: italic; font-size: 10.5px; color: #555; margin-bottom: 35px; }
-        .sig-name { font-weight: bold; font-size: 13px; }
+        .signatures {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8mm;
+            font-size: 12px;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        .sig-col {
+            width: 250px;
+            text-align: center;
+        }
         .sig-date { font-style: italic; font-size: 11.5px; margin-bottom: 3px; }
+        .sig-title { font-weight: bold; text-transform: uppercase; margin-bottom: 2px; font-size: 12.5px; }
+        .sig-hint { font-style: italic; font-size: 10.5px; color: #333; margin-bottom: 38px; }
+        .sig-name { font-weight: bold; font-size: 13px; }
 
-        /* ======================================================= */
-        /* ===== PRINT STYLES                                ===== */
-        /* ======================================================= */
+        /* ===== PRINT STYLES ===== */
         @media print {
             .toolbar, .settings-panel { display: none !important; }
 
@@ -219,43 +264,42 @@
                 margin: 0 !important;
             }
 
-            html, body {
-                width: 100% !important;
+            body {
                 background: #fff !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                color: #000 !important;
+                font-size: 11pt !important;
             }
 
             .paper-wrapper {
                 padding: 0 !important;
                 margin: 0 !important;
-                display: block !important;
             }
 
             .paper {
                 width: 100% !important;
                 max-width: 100% !important;
+                box-shadow: none !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                box-shadow: none !important;
-                min-height: auto !important;
             }
 
             table.master-layout {
                 width: 100% !important;
             }
 
-            table.student-table {
+            table.subject-table {
                 width: 100% !important;
                 border-collapse: collapse !important;
+                border: 0.5pt solid #000 !important;
+                border-width: 0.5pt !important;
             }
-            table.student-table th,
-            table.student-table td {
-                border: 0.5px solid #777 !important;
-                border-width: 0.5px !important;
-                padding: 3.5px 4px !important;
+            table.subject-table th,
+            table.subject-table td {
+                border: 0.5pt solid #000 !important;
+                border-width: 0.5pt !important;
+                padding: 5px 6px !important;
             }
-            table.student-table th {
+            table.subject-table th {
                 background-color: #f1f5f9 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
@@ -267,7 +311,7 @@
             table.master-layout > tfoot {
                 display: table-footer-group !important;
             }
-            table.student-table thead {
+            table.subject-table thead {
                 display: table-header-group !important;
             }
             tbody tr {
@@ -288,86 +332,86 @@
 <div class="toolbar">
     <div class="toolbar-main">
         <div class="toolbar-left">
-            <a href="<?= BASE_URL ?>/students">&#8592; Quay Lại</a>
-            <form method="GET" action="<?= BASE_URL ?>/students/print" style="display:flex;align-items:center;gap:8px;">
-                <label>Lớp:</label>
-                <select name="class_id" onchange="this.form.submit()">
-                    <option value="">-- Tất cả --</option>
-                    <?php foreach ($classes as $c): ?>
-                        <option value="<?= $c['id'] ?>" <?= ($classId == $c['id']) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($c['name']) ?>
-                        </option>
-                    <?php endforeach; ?>
+            <a href="<?= BASE_URL ?>/subjects">&#8592; Quay Lại Quản Lý Môn Học</a>
+            
+            <!-- Filter Status -->
+            <form method="GET" action="<?= BASE_URL ?>/subjects/print" style="display:flex;align-items:center;gap:8px;">
+                <label>Trạng thái:</label>
+                <select name="status" onchange="this.form.submit()">
+                    <option value="">-- Tất cả trạng thái --</option>
+                    <option value="active" <?= ($selectedStatus === 'active') ? 'selected' : '' ?>>Đang giảng dạy</option>
+                    <option value="inactive" <?= ($selectedStatus === 'inactive') ? 'selected' : '' ?>>Tạm dừng</option>
                 </select>
             </form>
+
             <button class="btn btn-settings" id="btnToggleSettings" onclick="toggleSettings()">
                 &#9881; Thiết Lập Lề Trang
             </button>
         </div>
         <div class="toolbar-right">
-            <button class="btn btn-print" onclick="window.print()">&#128424; In Danh Sách</button>
+            <button class="btn btn-print" onclick="window.print()">&#128424; In Danh Mục Môn Học</button>
         </div>
     </div>
 
-    <!-- Word-style Margin Settings Panel -->
+    <!-- Word-style Margins Settings Panel -->
     <div class="settings-panel" id="settingsPanel">
         <div class="settings-grid">
-            <!-- Margins -->
+            <!-- Margins Section -->
             <div class="settings-section">
-                <div class="settings-section-title">Lề trang (Margins)</div>
+                <div class="settings-section-title">Căn Lề Trang (Margins)</div>
                 <div class="margin-row">
-                    <label>Top:</label>
-                    <input type="number" id="marginTop" value="0.7" min="0" max="3" step="0.05">
+                    <label>Trên (Top):</label>
+                    <input type="number" id="marginTop" value="0.7" min="0.1" max="3" step="0.05">
                     <span class="unit">inch</span>
                 </div>
                 <div class="margin-row">
-                    <label>Bottom:</label>
-                    <input type="number" id="marginBottom" value="0.7" min="0" max="3" step="0.05">
+                    <label>Dưới (Bot):</label>
+                    <input type="number" id="marginBottom" value="0.7" min="0.1" max="3" step="0.05">
                     <span class="unit">inch</span>
                 </div>
                 <div class="margin-row">
-                    <label>Left:</label>
-                    <input type="number" id="marginLeft" value="0.7" min="0" max="3" step="0.05">
+                    <label>Trái (Left):</label>
+                    <input type="number" id="marginLeft" value="0.7" min="0.1" max="3" step="0.05">
                     <span class="unit">inch</span>
                 </div>
                 <div class="margin-row">
-                    <label>Right:</label>
-                    <input type="number" id="marginRight" value="0.7" min="0" max="3" step="0.05">
+                    <label>Phải (Right):</label>
+                    <input type="number" id="marginRight" value="0.7" min="0.1" max="3" step="0.05">
                     <span class="unit">inch</span>
                 </div>
             </div>
 
-            <!-- Gutter -->
+            <!-- Gutter Section -->
             <div class="settings-section">
-                <div class="settings-section-title">Gáy sách (Gutter)</div>
+                <div class="settings-section-title">Gáy Sách (Gutter)</div>
                 <div class="margin-row">
-                    <label>Gutter:</label>
+                    <label>Gáy (Gutter):</label>
                     <input type="number" id="gutterSize" value="0" min="0" max="2" step="0.05">
                     <span class="unit">inch</span>
                 </div>
                 <div class="margin-row">
-                    <label>Position:</label>
+                    <label>Vị trí:</label>
                     <select id="gutterPos">
-                        <option value="left" selected>Left</option>
-                        <option value="top">Top</option>
+                        <option value="left">Trái (Left)</option>
+                        <option value="top">Trên (Top)</option>
                     </select>
                 </div>
             </div>
 
-            <!-- Paper -->
+            <!-- Paper & Orientation -->
             <div class="settings-section">
-                <div class="settings-section-title">Khổ giấy</div>
+                <div class="settings-section-title">Khổ Giấy & Hướng In</div>
                 <div class="margin-row">
-                    <label>Size:</label>
-                    <select id="paperSize" style="width:110px;">
-                        <option value="a4" selected>A4 (210x297)</option>
-                        <option value="letter">Letter (216x279)</option>
-                        <option value="legal">Legal (216x356)</option>
+                    <label>Khổ giấy:</label>
+                    <select id="paperSize">
+                        <option value="a4" selected>A4 (210 &times; 297 mm)</option>
+                        <option value="letter">Letter (8.5 &times; 11 in)</option>
+                        <option value="legal">Legal (8.5 &times; 14 in)</option>
                     </select>
                 </div>
                 <div class="margin-row">
                     <label>Hướng:</label>
-                    <select id="paperOrientation" style="width:110px;">
+                    <select id="paperOrientation" style="width:115px;">
                         <option value="portrait" selected>Dọc (Portrait)</option>
                         <option value="landscape">Ngang (Landscape)</option>
                     </select>
@@ -376,25 +420,24 @@
 
             <!-- Mini Preview -->
             <div class="settings-section" style="align-items:center;">
-                <div class="settings-section-title">Xem trước</div>
+                <div class="settings-section-title">Xem Trước</div>
                 <div class="settings-preview" id="miniPreview">
                     <div class="settings-preview-inner" id="miniPreviewInner"></div>
                 </div>
             </div>
 
             <!-- Actions -->
-            <div class="settings-section">
-                <button class="btn-apply" onclick="applyMargins()">&#10003; Áp Dụng</button>
-                <button class="btn-reset" onclick="resetMargins()">&#8634; Mặc Định</button>
+            <div class="settings-section" style="display:flex; flex-direction:row; align-items:flex-end;">
+                <button class="btn btn-apply" onclick="applyMargins()">&#10003; Áp Dụng</button>
+                <button class="btn btn-reset" onclick="resetMargins()">&#8634; Mặc Định</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- ===== PAPER WRAPPER ===== -->
+<!-- ===== PRINT SHEET ===== -->
 <div class="paper-wrapper">
     <div class="paper" id="paper">
-
         <table class="master-layout">
             <thead>
                 <tr>
@@ -407,97 +450,79 @@
                 <tr>
                     <td>
                         <div class="content-container" id="contentContainer">
-
                             <!-- Document Header -->
                             <div class="doc-header">
-                                <div class="doc-header-left">
-                                    <p class="org-name">Sở Giáo Dục Và Đào Tạo</p>
-                                    <p class="school-name">Trường THCS &amp; THPT EduManage</p>
-                                    <p class="school-code">Mã trường: EDU-2026</p>
+                                <div class="header-left">
+                                    <div class="org-upper">SỞ GIÁO DỤC VÀ ĐÀO TẠO</div>
+                                    <div class="school-name">TRƯỜNG THCS & THPT EDUMANAGE</div>
+                                    <div class="school-code">Mã trường: EDU-2026</div>
                                 </div>
-                                <div class="doc-header-right">
-                                    <p class="republic">Cộng Hòa Xã Hội Chủ Nghĩa Việt Nam</p>
-                                    <p class="motto">Độc lập - Tự do - Hạnh phúc</p>
-                                    <p class="divider">─────────────────</p>
+                                <div class="header-right">
+                                    <div class="country">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                                    <div class="motto">Độc lập - Tự do - Hạnh phúc</div>
+                                    <hr class="hr-rule">
                                 </div>
                             </div>
 
                             <!-- Document Title -->
-                            <div class="doc-title">
-                                <h1>Danh Sách Học Sinh</h1>
-                                <?php if (!empty($selectedClass)): ?>
-                                    <h2>Lớp: <?= htmlspecialchars($selectedClass['name']) ?></h2>
-                                <?php else: ?>
-                                    <h2>Toàn Trường</h2>
-                                <?php endif; ?>
-                                <p class="meta">
-                                    <?php if (!empty($selectedClass)): ?>
-                                        Niên khóa: <strong><?= htmlspecialchars($selectedClass['year_name'] ?? '') ?></strong>
-                                        &nbsp;|&nbsp;
-                                        GVCN: <strong><?= htmlspecialchars($selectedClass['homeroom_teacher_name'] ?? 'Chưa phân công') ?></strong>
-                                        &nbsp;|&nbsp;
-                                    <?php endif; ?>
-                                    Sĩ số: <strong><?= count($students) ?></strong> học sinh
-                                </p>
+                            <div class="title-block">
+                                <h1>DANH MỤC MÔN HỌC GIẢNG DẠY</h1>
+                                <div class="subtitle">
+                                    NĂM HỌC 2025 – 2026
+                                </div>
+                                <div class="meta-info">
+                                    Tổng số môn: <strong><?= $totalSubjects ?> môn học</strong> | Tổng số tiết định mức: <strong><?= $totalPeriods ?> tiết/tuần</strong>
+                                </div>
                             </div>
 
-                            <?php $isSingleClass = !empty($selectedClass); ?>
-                            <!-- Student Table -->
-                            <table class="student-table">
+                            <!-- Subject Table -->
+                            <table class="subject-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: <?= $isSingleClass ? '6%' : '5%' ?>;">STT</th>
-                                        <th style="width: <?= $isSingleClass ? '16%' : '14%' ?>;">Mã HS</th>
-                                        <th style="width: <?= $isSingleClass ? '34%' : '30%' ?>; text-align:left; padding-left:6px;">Họ Và Tên</th>
-                                        <th style="width: <?= $isSingleClass ? '11%' : '10%' ?>;">Giới Tính</th>
-                                        <th style="width: <?= $isSingleClass ? '15%' : '13%' ?>;">Ngày Sinh</th>
-                                        <?php if (!$isSingleClass): ?>
-                                            <th style="width: 10%;">Lớp</th>
-                                        <?php endif; ?>
-                                        <th style="width: <?= $isSingleClass ? '18%' : '18%' ?>;">Ghi Chú</th>
+                                        <th style="width: 7%;">STT</th>
+                                        <th style="width: 18%;">Mã Môn</th>
+                                        <th style="width: 35%; text-align: left; padding-left: 10px;">Tên Môn Học</th>
+                                        <th style="width: 14%;">Số Tiết/Tuần</th>
+                                        <th style="width: 12%;">Hệ Số</th>
+                                        <th style="width: 14%;">Trạng Thái</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php if (!empty($students)): ?>
-                                        <?php foreach ($students as $idx => $s): ?>
+                                    <?php if (!empty($subjects)): ?>
+                                        <?php foreach ($subjects as $idx => $s): ?>
                                         <tr>
                                             <td class="c b"><?= $idx + 1 ?></td>
-                                            <td class="c b mono"><?= htmlspecialchars($s['student_code']) ?></td>
-                                            <td class="l b" style="padding-left:6px;"><?= htmlspecialchars($s['full_name']) ?></td>
-                                            <td class="c"><?= $s['gender'] === 'female' ? 'Nữ' : 'Nam' ?></td>
-                                            <td class="c"><?= !empty($s['dob']) ? date('d/m/Y', strtotime($s['dob'])) : '' ?></td>
-                                            <?php if (!$isSingleClass): ?>
-                                                <td class="c b"><?= htmlspecialchars($s['class_name'] ?? '') ?></td>
-                                            <?php endif; ?>
-                                            <td></td>
+                                            <td class="c mono"><?= htmlspecialchars($s['code']) ?></td>
+                                            <td class="l b" style="padding-left: 10px !important;"><?= htmlspecialchars($s['name']) ?></td>
+                                            <td class="c"><strong><?= (int)($s['periods_per_week'] ?? 2) ?></strong> tiết</td>
+                                            <td class="c"><strong>10</strong></td>
+                                            <td class="c">
+                                                <?php if (($s['status'] ?? '') === 'active'): ?>
+                                                    <span class="status-badge status-active">Đang giảng dạy</span>
+                                                <?php else: ?>
+                                                    <span class="status-badge status-inactive">Tạm dừng</span>
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="<?= $isSingleClass ? 6 : 7 ?>" style="text-align:center;padding:20px;font-style:italic;">Không có dữ liệu.</td></tr>
+                                        <tr>
+                                            <td colspan="6" class="c" style="padding: 20px; color: #777;">
+                                                Không có dữ liệu môn học phù hợp.
+                                            </td>
+                                        </tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
 
-                            <!-- Signatures -->
+                            <!-- Signatures Section -->
                             <div class="signatures">
                                 <div class="sig-col">
-                                    <p class="sig-title">Người Lập Bảng</p>
-                                    <p class="sig-hint">(Ký và ghi rõ họ tên)</p>
-                                </div>
-                                <div class="sig-col">
-                                    <p class="sig-title">Giáo Viên Chủ Nhiệm</p>
-                                    <p class="sig-hint">(Ký và ghi rõ họ tên)</p>
-                                    <?php if (!empty($selectedClass['homeroom_teacher_name'])): ?>
-                                        <p class="sig-name"><?= htmlspecialchars($selectedClass['homeroom_teacher_name']) ?></p>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="sig-col">
-                                    <p class="sig-date">....., ngày <?= date('d') ?> tháng <?= date('m') ?> năm <?= date('Y') ?></p>
-                                    <p class="sig-title">Ban Giám Hiệu</p>
-                                    <p class="sig-hint">(Ký tên và đóng dấu)</p>
+                                    <div class="sig-date">......, ngày <?= date('d') ?> tháng <?= date('m') ?> năm <?= date('Y') ?></div>
+                                    <div class="sig-title">BAN GIÁM HIỆU / HIỆU TRƯỞNG</div>
+                                    <div class="sig-hint">(Ký tên và đóng dấu)</div>
                                 </div>
                             </div>
-
                         </div>
                     </td>
                 </tr>
@@ -510,12 +535,10 @@
                 </tr>
             </tfoot>
         </table>
-
     </div>
 </div>
 
 <script>
-(function() {
     var INCH = 25.4;
     var paper = document.getElementById('paper');
     var spacerTop = document.getElementById('spacerTop');
@@ -557,12 +580,15 @@
 
         paper.style.width = pw + 'mm';
         paper.style.maxWidth = pw + 'mm';
+        paper.style.minHeight = ph + 'mm';
         spacerTop.style.height = mT + 'mm';
         spacerBottom.style.height = mB + 'mm';
         contentContainer.style.paddingLeft = mL + 'mm';
         contentContainer.style.paddingRight = mR + 'mm';
 
-        var sizeStr = v.orient === 'landscape' ? (ph + 'mm ' + pw + 'mm') : (pw + 'mm ' + ph + 'mm');
+        var pageOrientation = v.orient === 'landscape' ? 'landscape' : 'portrait';
+        var pagePaperSize = (v.pSize === 'a4' ? 'A4' : (v.pSize === 'letter' ? 'letter' : 'legal'));
+        var sizeStr = pagePaperSize + ' ' + pageOrientation;
 
         dynCSS.textContent =
             '@media print {' +
@@ -580,18 +606,24 @@
             '    padding-left: ' + mL.toFixed(2) + 'mm !important;' +
             '    padding-right: ' + mR.toFixed(2) + 'mm !important;' +
             '  }' +
+            '  table.subject-table, table.subject-table th, table.subject-table td {' +
+            '    border: 0.5pt solid #000 !important;' +
+            '    border-width: 0.5pt !important;' +
+            '  }' +
             '}';
 
         var prev = document.getElementById('miniPreview');
         var inner = document.getElementById('miniPreviewInner');
-        var pW = 70, pH = Math.round(pW * (ph / pw));
+        var pW = v.orient === 'landscape' ? 99 : 70;
+        var pH = v.orient === 'landscape' ? 70 : 99;
         prev.style.width = pW + 'px';
         prev.style.height = pH + 'px';
-        var s = pW / pw;
-        inner.style.top = Math.round(mT * s) + 'px';
-        inner.style.bottom = Math.round(mB * s) + 'px';
-        inner.style.left = Math.round(mL * s) + 'px';
-        inner.style.right = Math.round(mR * s) + 'px';
+        var sW = pW / pw;
+        var sH = pH / ph;
+        inner.style.top = Math.round(mT * sH) + 'px';
+        inner.style.bottom = Math.round(mB * sH) + 'px';
+        inner.style.left = Math.round(mL * sW) + 'px';
+        inner.style.right = Math.round(mR * sW) + 'px';
     }
 
     function resetMargins() {
@@ -618,21 +650,8 @@
         document.getElementById(id).addEventListener('change', applyMargins);
     });
 
-    window.applyMargins = applyMargins;
-    window.resetMargins = resetMargins;
-    window.toggleSettings = toggleSettings;
-
     applyMargins();
-})();
 </script>
-
-<?php if (!empty($autoPrint)): ?>
-<script>
-window.addEventListener('load', function() {
-    setTimeout(function() { window.print(); }, 600);
-});
-</script>
-<?php endif; ?>
 
 </body>
 </html>

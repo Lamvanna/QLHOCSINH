@@ -249,8 +249,37 @@ class SubjectController extends BaseController {
     public function index(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('subjects.view');
-        $subjects = Subject::all('id ASC');
-        View::render('subjects/index', ['subjects' => $subjects]);
+        
+        $search = trim($request->input('search', ''));
+        $status = trim($request->input('status', ''));
+
+        $filters = [
+            'search' => $search,
+            'status' => $status
+        ];
+
+        $allSubjects = Subject::all('id ASC');
+        $subjects = $allSubjects;
+
+        if (!empty($search)) {
+            $sLower = mb_strtolower($search, 'UTF-8');
+            $subjects = array_filter($subjects, function($s) use ($sLower) {
+                return str_contains(mb_strtolower($s['name'] ?? '', 'UTF-8'), $sLower)
+                    || str_contains(mb_strtolower($s['code'] ?? '', 'UTF-8'), $sLower);
+            });
+            $subjects = array_values($subjects);
+        }
+
+        if (!empty($status)) {
+            $subjects = array_filter($subjects, fn($s) => ($s['status'] ?? '') === $status);
+            $subjects = array_values($subjects);
+        }
+
+        View::render('subjects/index', [
+            'subjects' => $subjects,
+            'allSubjects' => $allSubjects,
+            'filters' => $filters
+        ]);
     }
     public function store(Request $request): void {
         $this->requireAuth();
@@ -286,13 +315,32 @@ class SubjectController extends BaseController {
         AuditLogger::log('UPDATE_SUBJECT', 'subjects', (string)$id, $subject, $data);
         Response::success(null, 'Cập nhật môn học thành công!');
     }
-    public function destroy(Request $request, array $params): void {
+        public function destroy(Request $request, array $params): void {
         $this->requireAuth();
         $this->requirePermission('subjects.delete');
         $id = (int)($params['id'] ?? 0);
         Subject::delete($id);
         AuditLogger::log('DELETE_SUBJECT', 'subjects', (string)$id);
         Response::success(null, 'Đã xóa môn học thành công.');
+    }
+
+    public function printList(Request $request): void {
+        $this->requireAuth();
+        $this->requirePermission('subjects.view');
+
+        $status = trim($request->input('status', ''));
+        $allSubjects = Subject::all('id ASC');
+        $subjects = $allSubjects;
+
+        if (!empty($status)) {
+            $subjects = array_filter($subjects, fn($s) => ($s['status'] ?? '') === $status);
+            $subjects = array_values($subjects);
+        }
+
+        View::render('subjects/print', [
+            'subjects' => $subjects,
+            'selectedStatus' => $status
+        ], 'none');
     }
 }
 
@@ -357,58 +405,149 @@ class AcademicYearController extends BaseController {
     public function index(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('academic_years.view');
-        $years = AcademicYear::all('id DESC');
-        View::render('academic_years/index', ['years' => $years]);
+
+        $search = trim($request->input('search', ''));
+        $status = trim($request->input('status', ''));
+
+        $pdo = Database::getConnection();
+        $sql = "SELECT y.*, 
+                    (SELECT COUNT(*) FROM classes c WHERE c.academic_year_id = y.id) as class_count, 
+                    (SELECT COUNT(*) FROM students s WHERE s.academic_year_id = y.id AND s.deleted_at IS NULL) as student_count, 
+                    (SELECT COUNT(*) FROM semesters sm WHERE sm.academic_year_id = y.id) as semester_count 
+                FROM academic_years y 
+                ORDER BY y.is_current DESC, y.start_date DESC";
+        $years = $pdo->query($sql)->fetchAll();
+
+        // Apply filters in-memory
+        if (!empty($search)) {
+            $sLower = mb_strtolower($search, 'UTF-8');
+            $years = array_filter($years, function($y) use ($sLower) {
+                return str_contains(mb_strtolower($y['name'] ?? '', 'UTF-8'), $sLower)
+                    || str_contains(mb_strtolower($y['code'] ?? '', 'UTF-8'), $sLower);
+            });
+            $years = array_values($years);
+        }
+
+        if (!empty($status)) {
+            $years = array_filter($years, function($y) use ($status) {
+                return ($y['status'] ?? '') === $status;
+            });
+            $years = array_values($years);
+        }
+
+        $currentSemester = $pdo->query("SELECT s.*, y.name as year_name FROM semesters s JOIN academic_years y ON s.academic_year_id = y.id WHERE s.is_current = 1 LIMIT 1")->fetch() ?: null;
+
+        if ($request->isAjax()) {
+            Response::json($years);
+            return;
+        }
+
+        View::render('academic_years/index', [
+            'years' => $years,
+            'allYearsForExport' => $years,
+            'currentSemester' => $currentSemester,
+            'filters' => [
+                'search' => $search,
+                'status' => $status
+            ]
+        ]);
     }
+
     public function store(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('academic_years.create');
         $data = $request->all();
         $pdo  = Database::getConnection();
-        $chk  = $pdo->prepare("SELECT id FROM academic_years WHERE code = ?");
+
+        $validator = Validator::make($data, [
+            'name' => 'required',
+            'code' => 'required',
+            'start_date' => 'required',
+            'end_date' => 'required'
+        ]);
+        if ($validator->fails()) {
+            Response::error($validator->firstError());
+            return;
+        }
+
+        $chk = $pdo->prepare("SELECT id FROM academic_years WHERE code = ?");
         $chk->execute([trim($data['code'])]);
-        if ($chk->fetch()) { Response::error("Mã năm học '{$data['code']}' đã tồn tại."); return; }
+        if ($chk->fetch()) { 
+            Response::error("Mã năm học '{$data['code']}' đã tồn tại trong hệ thống."); 
+            return; 
+        }
+
         if (!empty($data['is_current'])) {
             $pdo->exec("UPDATE academic_years SET is_current = 0");
         }
+
         $id = AcademicYear::create([
             'name'       => trim($data['name']),
             'code'       => trim($data['code']),
             'start_date' => $data['start_date'],
             'end_date'   => $data['end_date'],
             'is_current' => !empty($data['is_current']) ? 1 : 0,
-            'status'     => $data['status'] ?? 'active'
+            'status'     => $data['status'] ?? 'active',
+            'is_locked'  => !empty($data['is_locked']) ? 1 : 0
         ]);
+
         AuditLogger::log('CREATE_ACADEMIC_YEAR', 'academic_years', (string)$id, null, $data);
-        Response::success(['id' => $id], 'Tạo năm học thành công!');
+        Response::success(['id' => $id], 'Tạo năm học mới thành công!');
     }
+
     public function update(Request $request, array $params): void {
         $this->requireAuth();
         $this->requirePermission('academic_years.update');
         $id   = (int)($params['id'] ?? 0);
         $year = AcademicYear::find($id);
-        if (!$year) { Response::error('Năm học không tồn tại.', 404); return; }
+        if (!$year) { 
+            Response::error('Năm học không tồn tại.', 404); 
+            return; 
+        }
+
         $data = $request->all();
         $pdo  = Database::getConnection();
-        if (!empty($data['is_current'])) {
+
+        if (isset($data['is_current']) && !empty($data['is_current'])) {
             $pdo->exec("UPDATE academic_years SET is_current = 0");
         }
-        AcademicYear::update($id, [
-            'name'       => trim($data['name']),
-            'start_date' => $data['start_date'] ?? $year['start_date'],
-            'end_date'   => $data['end_date'] ?? $year['end_date'],
-            'is_current' => !empty($data['is_current']) ? 1 : 0,
-            'status'     => $data['status'] ?? $year['status']
-        ]);
+
+        $updateData = [];
+        if (isset($data['name'])) $updateData['name'] = trim($data['name']);
+        if (isset($data['code'])) $updateData['code'] = trim($data['code']);
+        if (isset($data['start_date'])) $updateData['start_date'] = $data['start_date'];
+        if (isset($data['end_date'])) $updateData['end_date'] = $data['end_date'];
+        if (isset($data['is_current'])) $updateData['is_current'] = !empty($data['is_current']) ? 1 : 0;
+        if (isset($data['status'])) $updateData['status'] = $data['status'];
+        if (isset($data['is_locked'])) $updateData['is_locked'] = !empty($data['is_locked']) ? 1 : 0;
+
+        AcademicYear::update($id, $updateData);
         AuditLogger::log('UPDATE_ACADEMIC_YEAR', 'academic_years', (string)$id, $year, $data);
-        Response::success(null, 'Cập nhật năm học thành công!');
+        Response::success(null, 'Cập nhật thông tin năm học thành công!');
     }
+
     public function destroy(Request $request, array $params): void {
         $this->requireAuth();
         $this->requirePermission('academic_years.delete');
         $id   = (int)($params['id'] ?? 0);
         $year = AcademicYear::find($id);
-        if ($year && $year['is_current']) { Response::error('Không thể xóa năm học đang hoạt động.'); return; }
+        if (!$year) {
+            Response::error('Năm học không tồn tại.');
+            return;
+        }
+        if ($year['is_current']) { 
+            Response::error('Không thể xóa niên khóa đang được đặt làm hiện hành.'); 
+            return; 
+        }
+
+        $pdo = Database::getConnection();
+        $hasClasses = $pdo->prepare("SELECT COUNT(*) FROM classes WHERE academic_year_id = ?");
+        $hasClasses->execute([$id]);
+        if ($hasClasses->fetchColumn() > 0) {
+            Response::error('Không thể xóa năm học đang có lớp học theo học. Hãy chuyển lớp sang năm học khác trước!');
+            return;
+        }
+
         AcademicYear::delete($id);
         AuditLogger::log('DELETE_ACADEMIC_YEAR', 'academic_years', (string)$id);
         Response::success(null, 'Đã xóa năm học thành công.');
@@ -420,58 +559,167 @@ class SemesterController extends BaseController {
     public function index(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('semesters.view');
+
+        // TẠM KHÓA PHẦN HỌC KỲ (Chuyển sang false khi cần kích hoạt lại)
+        $isLocked = true;
+        if ($isLocked) {
+            View::render('semesters/locked');
+            return;
+        }
+
+        $search = trim($request->input('search', ''));
+        $yearId = trim($request->input('academic_year_id', ''));
+        $status = trim($request->input('status', ''));
+
+        $filters = [
+            'search' => $search,
+            'academic_year_id' => $yearId,
+            'status' => $status
+        ];
+
         $pdo = Database::getConnection();
-        $semesters = $pdo->query("SELECT s.*, a.name as year_name FROM semesters s LEFT JOIN academic_years a ON s.academic_year_id = a.id ORDER BY s.id ASC")->fetchAll();
-        $years     = AcademicYear::all('id DESC');
-        View::render('semesters/index', ['semesters' => $semesters, 'years' => $years]);
+        $sql = "SELECT s.*, a.name as year_name, a.code as year_code,
+                    (SELECT COUNT(*) FROM grade_records g WHERE g.semester_id = s.id) as grade_count,
+                    (SELECT COUNT(*) FROM schedules sc WHERE sc.semester_id = s.id) as schedule_count,
+                    (SELECT COUNT(*) FROM exams e WHERE e.semester_id = s.id) as exam_count
+                FROM semesters s 
+                LEFT JOIN academic_years a ON s.academic_year_id = a.id 
+                ORDER BY s.is_current DESC, s.academic_year_id DESC, s.id ASC";
+        $semesters = $pdo->query($sql)->fetchAll();
+
+        // Apply filters in-memory
+        if (!empty($search)) {
+            $sLower = mb_strtolower($search, 'UTF-8');
+            $semesters = array_filter($semesters, function($s) use ($sLower) {
+                return str_contains(mb_strtolower($s['name'] ?? '', 'UTF-8'), $sLower)
+                    || str_contains(mb_strtolower($s['code'] ?? '', 'UTF-8'), $sLower)
+                    || str_contains(mb_strtolower($s['year_name'] ?? '', 'UTF-8'), $sLower);
+            });
+            $semesters = array_values($semesters);
+        }
+
+        if (!empty($yearId)) {
+            $semesters = array_filter($semesters, function($s) use ($yearId) {
+                return (string)($s['academic_year_id'] ?? '') === (string)$yearId;
+            });
+            $semesters = array_values($semesters);
+        }
+
+        if (!empty($status)) {
+            $semesters = array_filter($semesters, function($s) use ($status) {
+                return ($s['status'] ?? '') === $status;
+            });
+            $semesters = array_values($semesters);
+        }
+
+        $years = AcademicYear::all('is_current DESC, id DESC');
+
+        if ($request->isAjax()) {
+            Response::json($semesters);
+            return;
+        }
+
+        View::render('semesters/index', [
+            'semesters' => $semesters,
+            'allSemestersForExport' => $semesters,
+            'years' => $years,
+            'filters' => $filters
+        ]);
     }
+
     public function store(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('semesters.create');
         $data = $request->all();
-        $pdo  = Database::getConnection();
+
+        $validator = Validator::make($data, [
+            'name' => 'required',
+            'academic_year_id' => 'required|numeric',
+            'start_date' => 'required',
+            'end_date' => 'required'
+        ]);
+        if ($validator->fails()) {
+            Response::error($validator->firstError());
+            return;
+        }
+
+        $pdo = Database::getConnection();
         if (!empty($data['is_current'])) {
             $pdo->exec("UPDATE semesters SET is_current = 0");
         }
+
+        $code = trim($data['code'] ?? '');
+        if (empty($code)) {
+            $code = 'HK' . (Semester::count("academic_year_id = ?", [(int)$data['academic_year_id']]) + 1);
+        }
+
         $id = Semester::create([
             'name'             => trim($data['name']),
+            'code'             => strtoupper($code),
             'academic_year_id' => (int)$data['academic_year_id'],
             'start_date'       => $data['start_date'],
             'end_date'         => $data['end_date'],
             'is_current'       => !empty($data['is_current']) ? 1 : 0,
             'status'           => $data['status'] ?? 'active'
         ]);
+
         AuditLogger::log('CREATE_SEMESTER', 'semesters', (string)$id, null, $data);
-        Response::success(['id' => $id], 'Tạo học kỳ thành công!');
+        Response::success(['id' => $id], 'Tạo học kỳ mới thành công!');
     }
+
     public function update(Request $request, array $params): void {
         $this->requireAuth();
         $this->requirePermission('semesters.update');
         $id       = (int)($params['id'] ?? 0);
         $semester = Semester::find($id);
-        if (!$semester) { Response::error('Học kỳ không tồn tại.', 404); return; }
+        if (!$semester) { 
+            Response::error('Học kỳ không tồn tại.', 404); 
+            return; 
+        }
+
         $data = $request->all();
         $pdo  = Database::getConnection();
-        if (!empty($data['is_current'])) {
+
+        if (isset($data['is_current']) && !empty($data['is_current'])) {
             $pdo->exec("UPDATE semesters SET is_current = 0");
         }
-        Semester::update($id, [
-            'name'             => trim($data['name']),
-            'academic_year_id' => (int)($data['academic_year_id'] ?? $semester['academic_year_id']),
-            'start_date'       => $data['start_date'] ?? $semester['start_date'],
-            'end_date'         => $data['end_date'] ?? $semester['end_date'],
-            'is_current'       => !empty($data['is_current']) ? 1 : 0,
-            'status'           => $data['status'] ?? $semester['status']
-        ]);
+
+        $updateData = [];
+        if (isset($data['name'])) $updateData['name'] = trim($data['name']);
+        if (isset($data['code'])) $updateData['code'] = strtoupper(trim($data['code']));
+        if (isset($data['academic_year_id'])) $updateData['academic_year_id'] = (int)$data['academic_year_id'];
+        if (isset($data['start_date'])) $updateData['start_date'] = $data['start_date'];
+        if (isset($data['end_date'])) $updateData['end_date'] = $data['end_date'];
+        if (isset($data['is_current'])) $updateData['is_current'] = !empty($data['is_current']) ? 1 : 0;
+        if (isset($data['status'])) $updateData['status'] = $data['status'];
+
+        Semester::update($id, $updateData);
         AuditLogger::log('UPDATE_SEMESTER', 'semesters', (string)$id, $semester, $data);
-        Response::success(null, 'Cập nhật học kỳ thành công!');
+        Response::success(null, 'Cập nhật thông tin học kỳ thành công!');
     }
+
     public function destroy(Request $request, array $params): void {
         $this->requireAuth();
         $this->requirePermission('semesters.delete');
         $id  = (int)($params['id'] ?? 0);
         $sem = Semester::find($id);
-        if ($sem && $sem['is_current']) { Response::error('Không thể xóa học kỳ đang hoạt động.'); return; }
+        if (!$sem) {
+            Response::error('Học kỳ không tồn tại.');
+            return;
+        }
+        if ($sem['is_current']) { 
+            Response::error('Không thể xóa học kỳ đang được đặt làm hiện hành.'); 
+            return; 
+        }
+
+        $pdo = Database::getConnection();
+        $hasGrades = $pdo->prepare("SELECT COUNT(*) FROM grade_records WHERE semester_id = ?");
+        $hasGrades->execute([$id]);
+        if ($hasGrades->fetchColumn() > 0) {
+            Response::error('Không thể xóa học kỳ đã có điểm số học sinh ghi nhận. Vui lòng kiểm tra lại!');
+            return;
+        }
+
         Semester::delete($id);
         AuditLogger::log('DELETE_SEMESTER', 'semesters', (string)$id);
         Response::success(null, 'Đã xóa học kỳ thành công.');

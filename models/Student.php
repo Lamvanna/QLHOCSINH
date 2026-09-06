@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // models/Student.php
 require_once __DIR__ . '/BaseModel.php';
 

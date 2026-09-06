@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // index.php - Front Controller
 
 require_once __DIR__ . '/config/constants.php';
@@ -52,14 +52,17 @@ Router::post('/students/import', [StudentController::class, 'import']);
 
 // --- 4. TEACHERS (GIÁO VIÊN) ---
 Router::get('/teachers', [TeacherController::class, 'index']);
+Router::get('/teachers/print', [TeacherController::class, 'printList']);
 Router::get('/teachers/create', [TeacherController::class, 'create']);
 Router::post('/teachers', [TeacherController::class, 'store']);
 Router::get('/teachers/{id}/edit', [TeacherController::class, 'edit']);
 Router::post('/teachers/{id}', [TeacherController::class, 'update']);
 Router::delete('/teachers/{id}', [TeacherController::class, 'destroy']);
+Router::post('/teachers/import', [TeacherController::class, 'import']);
 
 // --- 5. CLASSES & GRADE LEVELS (LỚP & KHỐI) ---
 Router::get('/classes', [ClassController::class, 'index']);
+Router::get('/classes/print', [ClassController::class, 'printList']);
 Router::post('/classes', [ClassController::class, 'store']);
 Router::get('/classes/{id}', [ClassController::class, 'show']);
 Router::post('/classes/{id}', [ClassController::class, 'update']);
@@ -72,6 +75,7 @@ Router::delete('/grade-levels/{id}', [GradeLevelController::class, 'destroy']);
 
 // --- 6. SUBJECTS, YEARS & SEMESTERS (MÔN HỌC, NĂM HỌC, HỌC KỲ) ---
 Router::get('/subjects', [SubjectController::class, 'index']);
+Router::get('/subjects/print', [SubjectController::class, 'printList']);
 Router::post('/subjects', [SubjectController::class, 'store']);
 Router::post('/subjects/{id}', [SubjectController::class, 'update']);
 Router::delete('/subjects/{id}', [SubjectController::class, 'destroy']);
@@ -86,6 +90,7 @@ Router::delete('/semesters/{id}', [SemesterController::class, 'destroy']);
 
 // --- 7. GRADES & PROMOTIONS (ĐIỂM SỐ & XÉT LÊN LỚP) ---
 Router::get('/grades', [GradeController::class, 'index']);
+Router::get('/grades/print', [GradeController::class, 'printSheet']);
 Router::post('/grades/save', [GradeController::class, 'save']);
 Router::post('/grades/lock', [GradeController::class, 'lock']);
 Router::post('/grades/unlock', [GradeController::class, 'unlock']);

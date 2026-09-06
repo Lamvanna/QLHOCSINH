@@ -1,43 +1,45 @@
 <?php // views/teachers/form.php ?>
-<div class="w-full space-y-6 max-w-6xl mx-auto">
+<?php
+$isEdit = !empty($teacher['id']);
+$pageTitle = $isEdit ? 'Cập Nhật Hồ Sơ Giáo Viên' : 'Thêm Giáo Viên Mới';
+$currentGender = $teacher['gender'] ?? 'male';
+$currentStatus = $teacher['status'] ?? 'active';
+?>
 
-    <!-- Breadcrumb Header -->
+<div class="w-full space-y-6 pb-20">
+
+    <!-- 1. BREADCRUMBS & TOP BACK BUTTON -->
     <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <a href="<?= BASE_URL ?>/dashboard" class="hover:text-blue-600 transition-colors">Quản lý</a>
+        <nav class="flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+            <a href="<?= BASE_URL ?>/teachers" class="hover:text-emerald-600 transition-colors">Giáo viên</a>
             <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <a href="<?= BASE_URL ?>/teachers" class="hover:text-blue-600 transition-colors">Giáo viên</a>
-            <span class="material-symbols-outlined text-[14px]">chevron_right</span>
-            <span class="text-blue-600 font-bold"><?= $isEdit ? 'Cập nhật thông tin' : 'Thêm giáo viên mới' ?></span>
-        </div>
+            <span class="text-emerald-700 dark:text-emerald-400 font-bold"><?= $isEdit ? 'Cập nhật hồ sơ' : 'Thêm mới' ?></span>
+        </nav>
         <a href="<?= BASE_URL ?>/teachers" 
-           class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-sm transition-all">
+           class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-900 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-sm transition-all">
             <span class="material-symbols-outlined text-[16px]">arrow_back</span>
-            <span>Danh sách giáo viên</span>
+            <span>Quay lại</span>
         </a>
     </div>
 
-    <!-- Page Title Hero Card -->
-    <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-xl">
-        <div class="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-60 h-60 bg-indigo-500/10 rounded-full blur-3xl -ml-10 -mb-10 pointer-events-none"></div>
-        
-        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <!-- 2. PAGE TITLE BANNER -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 md:p-8 text-white relative overflow-hidden shadow-sm">
+        <div class="flex items-center justify-between relative z-10">
             <div class="flex items-center gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center backdrop-blur-md">
-                    <span class="material-symbols-outlined text-3xl text-blue-300"><?= $isEdit ? 'badge' : 'person_add' ?></span>
+                <div class="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur border border-white/20 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-2xl text-emerald-400"><?= $isEdit ? 'badge' : 'person_add' ?></span>
                 </div>
                 <div>
-                    <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 text-[10px] font-bold uppercase tracking-wider mb-1 border border-blue-400/20">
-                        <span class="material-symbols-outlined text-[12px]">school</span> Quản Lý Đội Ngũ Sư Phạm
-                    </div>
-                    <h1 class="text-2xl font-black tracking-tight"><?= $isEdit ? 'Cập Nhật Hồ Sơ Giáo Viên' : 'Thêm Mới Giáo Viên' ?></h1>
-                    <p class="text-blue-200/80 text-xs mt-0.5"><?= $isEdit ? 'Chỉnh sửa thông tin cá nhân, chuyên môn và phân công công tác.' : 'Nhập đầy đủ thông tin để tạo hồ sơ và tài khoản giảng dạy mới trong hệ thống.' ?></p>
+                    <span class="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 uppercase tracking-wider mb-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Quản Lý Đội Ngũ Sư Phạm
+                    </span>
+                    <h1 class="text-xl md:text-2xl font-black tracking-tight"><?= $pageTitle ?></h1>
+                    <p class="text-xs text-slate-400 mt-0.5"><?= $isEdit ? 'Chỉnh sửa thông tin cá nhân, chuyên môn giảng dạy và phân công công tác.' : 'Điền đầy đủ thông tin để tạo hồ sơ và cấp tài khoản giáo viên mới.' ?></p>
                 </div>
             </div>
-
             <?php if ($isEdit): ?>
-            <div class="flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-xl border border-white/15">
+            <div class="hidden sm:flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-xl border border-white/15">
                 <span class="text-xs text-slate-300">Mã GV:</span>
                 <span class="font-mono font-black text-emerald-400 text-sm"><?= htmlspecialchars($teacher['teacher_code']) ?></span>
             </div>
@@ -45,250 +47,301 @@
         </div>
     </div>
 
-    <!-- Form Container -->
-    <form onsubmit="handleSubmitTeacherForm(event)" id="teacherForm" novalidate>
-        <div class="space-y-6">
+    <!-- 3. FORM CONTAINER -->
+    <form onsubmit="handleSubmitTeacherForm(event)" id="teacherForm" class="space-y-6" novalidate>
+        <?php if ($isEdit): ?>
+        <input type="hidden" name="id" value="<?= $teacher['id'] ?>">
+        <?php endif; ?>
 
-            <!-- ============================================ -->
-            <!-- SECTION 1: THÔNG TIN CÁ NHÂN                -->
-            <!-- ============================================ -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <!-- Section Header -->
-                <div class="flex items-center gap-3 px-6 md:px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/30">
-                    <div class="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-[18px]">person</span>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Thông Tin Cá Nhân</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Ảnh chân dung, họ tên, giới tính, ngày sinh và thông tin liên lạc</p>
-                    </div>
-                    <span class="ml-auto text-[10px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-full border border-rose-100 dark:border-rose-900">Bắt buộc *</span>
+        <!-- SECTION 1: THÔNG TIN CÁ NHÂN & ẢNH ĐẠI DIỆN -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm space-y-6">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">person</span>
                 </div>
-
-                <div class="p-6 md:p-8">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8">
-                        <!-- Photo Upload / Avatar -->
-                        <div class="col-span-1 flex flex-col items-center gap-3">
-                            <div class="w-32 h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800/60 dark:to-slate-800 flex flex-col items-center justify-center overflow-hidden relative cursor-pointer hover:border-blue-400 hover:from-blue-50/50 dark:hover:border-blue-600 transition-all group shadow-inner">
-                                <?php if (!empty($teacher['avatar'])): ?>
-                                <img src="<?= htmlspecialchars($teacher['avatar']) ?>" class="w-full h-full object-cover" id="avatarPreview">
-                                <?php else: ?>
-                                <span class="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 group-hover:text-blue-400 transition-colors mb-1" id="avatarIcon">account_circle</span>
-                                <span class="text-[10px] font-medium text-slate-400 group-hover:text-blue-500 transition-colors">Ảnh chân dung</span>
-                                <?php endif; ?>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400">Ảnh Thẻ Giáo Viên</p>
-                                <p class="text-[10px] text-slate-400 mt-0.5">JPG, PNG tối đa 2MB</p>
-                            </div>
-                        </div>
-
-                        <!-- Fields -->
-                        <div class="col-span-1 md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <!-- Họ và Tên -->
-                            <div class="sm:col-span-2 space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                    Họ và Tên Đầy Đủ
-                                    <span class="text-rose-500 ml-0.5">*</span>
-                                </label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">person</span>
-                                    <input type="text" name="full_name" required 
-                                           value="<?= htmlspecialchars($teacher['full_name'] ?? '') ?>" 
-                                           placeholder="VD: ThS. Nguyễn Văn An"
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white placeholder:text-slate-400 placeholder:font-normal transition-all">
-                                </div>
-                            </div>
-
-                            <!-- Giới Tính -->
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                    Giới Tính <span class="text-rose-500">*</span>
-                                </label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">wc</span>
-                                    <select name="gender" required class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white appearance-none">
-                                        <option value="male" <?= ($teacher['gender'] ?? '') === 'male' ? 'selected' : '' ?>>Nam</option>
-                                        <option value="female" <?= ($teacher['gender'] ?? '') === 'female' ? 'selected' : '' ?>>Nữ</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <!-- Ngày Sinh -->
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Ngày Sinh</label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">calendar_today</span>
-                                    <input type="date" name="dob" 
-                                           value="<?= htmlspecialchars($teacher['dob'] ?? '1988-01-01') ?>"
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white">
-                                </div>
-                            </div>
-
-                            <!-- Số Điện Thoại -->
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Số Điện Thoại</label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">phone</span>
-                                    <input type="tel" name="phone" 
-                                           value="<?= htmlspecialchars($teacher['phone'] ?? '') ?>" 
-                                           placeholder="0911 000 001"
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono placeholder:text-slate-400 text-slate-900 dark:text-white">
-                                </div>
-                            </div>
-
-                            <!-- Email Liên Hệ -->
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Email Công Tác</label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">mail</span>
-                                    <input type="email" name="email" 
-                                           value="<?= htmlspecialchars($teacher['email'] ?? '') ?>" 
-                                           placeholder="giaovien@edumanage.edu.vn"
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs placeholder:text-slate-400 text-slate-900 dark:text-white">
-                                </div>
-                            </div>
-
-                            <!-- Địa Chỉ Thường Trú -->
-                            <div class="sm:col-span-2 space-y-1.5">
-                                <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Địa Chỉ Cư Trú</label>
-                                <div class="relative">
-                                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">home</span>
-                                    <input type="text" name="address" 
-                                           value="<?= htmlspecialchars($teacher['address'] ?? '') ?>" 
-                                           placeholder="Số nhà, đường, phường/xã, quận/huyện..."
-                                           class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs placeholder:text-slate-400 text-slate-900 dark:text-white">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Thông Tin Cá Nhân & Ảnh Thẻ</h2>
+                    <p class="text-[11px] text-slate-400">Ảnh chân dung đại diện, họ và tên, giới tính và ngày sinh</p>
                 </div>
             </div>
 
-            <!-- ============================================ -->
-            <!-- SECTION 2: THÔNG TIN CÔNG TÁC & CHUYÊN MÔN   -->
-            <!-- ============================================ -->
-            <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                <!-- Section Header -->
-                <div class="flex items-center gap-3 px-6 md:px-8 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/30">
-                    <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined text-[18px]">work</span>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 items-start">
+                <!-- Avatar Upload Zone -->
+                <div class="flex flex-col items-center text-center">
+                    <div class="relative group cursor-pointer" onclick="document.getElementById('teacherAvatarFile').click()">
+                        <div class="w-28 h-28 md:w-32 md:h-32 rounded-3xl overflow-hidden border-2 border-dashed border-emerald-500/50 p-1 bg-slate-50 dark:bg-slate-800 transition-all group-hover:border-emerald-500 group-hover:scale-105">
+                            <img id="avatarPreview" 
+                                 src="<?= htmlspecialchars($teacher['avatar'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200') ?>" 
+                                 class="w-full h-full object-cover rounded-2xl" 
+                                 alt="Avatar Preview">
+                        </div>
+                        <div class="absolute inset-0 bg-slate-900/40 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                            <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                        </div>
                     </div>
-                    <div>
-                        <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Thông Tin Công Tác & Chuyên Môn</h2>
-                        <p class="text-[11px] text-slate-400 mt-0.5">Mã giáo viên, chuyên môn giảng dạy, trình độ học vị và lớp chủ nhiệm</p>
-                    </div>
+                    <input type="file" id="teacherAvatarFile" accept="image/*" class="hidden" onchange="previewTeacherImage(this)">
+                    <input type="hidden" name="avatar" id="avatarInput" value="<?= htmlspecialchars($teacher['avatar'] ?? '') ?>">
+                    <p class="text-[11px] font-semibold text-slate-500 mt-2.5">Bấm để thay ảnh thẻ</p>
+                    <p class="text-[10px] text-slate-400">PNG, JPG tối đa 2MB</p>
                 </div>
 
-                <div class="p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                    <!-- Mã Giáo Viên -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                <!-- Input Fields -->
+                <div class="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             Mã Giáo Viên <span class="text-rose-500">*</span>
                         </label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">badge</span>
-                            <input type="text" name="teacher_code" required 
-                                   <?= $isEdit ? 'readonly' : '' ?>
-                                   value="<?= htmlspecialchars($teacher['teacher_code'] ?? 'GV25' . rand(100, 999)) ?>" 
-                                   placeholder="GV25001"
-                                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-black text-emerald-600 uppercase">
-                        </div>
+                        <input type="text" name="teacher_code" required 
+                               value="<?= htmlspecialchars($teacher['teacher_code'] ?? '') ?>" 
+                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none uppercase" 
+                               placeholder="VD: GV25101">
                     </div>
 
-                    <!-- Chuyên Môn Giảng Dạy -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                            Chuyên Môn Giảng Dạy <span class="text-rose-500">*</span>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            Họ và Tên Đầy Đủ <span class="text-rose-500">*</span>
                         </label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">menu_book</span>
-                            <input type="text" name="specialization" required 
-                                   value="<?= htmlspecialchars($teacher['specialization'] ?? 'Toán Học') ?>" 
-                                   placeholder="Toán Học, Tiếng Việt, Tiếng Anh..."
-                                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white">
+                        <input type="text" name="full_name" required 
+                               value="<?= htmlspecialchars($teacher['full_name'] ?? '') ?>" 
+                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" 
+                               placeholder="VD: Nguyễn Thành Long">
+                    </div>
+
+                    <!-- Gender Radio Buttons -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            Giới Tính <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border cursor-pointer transition-all <?= $currentGender === 'male' ? 'border-blue-500 bg-blue-50/60 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600' ?>">
+                                <input type="radio" name="gender" value="male" <?= $currentGender === 'male' ? 'checked' : '' ?> class="hidden" onchange="updateGenderStyle(this)">
+                                <span class="material-symbols-outlined text-[18px]">male</span>
+                                <span class="text-xs">Nam</span>
+                            </label>
+                            <label class="flex items-center justify-center gap-2 p-2 rounded-xl border cursor-pointer transition-all <?= $currentGender === 'female' ? 'border-rose-500 bg-rose-50/60 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600' ?>">
+                                <input type="radio" name="gender" value="female" <?= $currentGender === 'female' ? 'checked' : '' ?> class="hidden" onchange="updateGenderStyle(this)">
+                                <span class="material-symbols-outlined text-[18px]">female</span>
+                                <span class="text-xs">Nữ</span>
+                            </label>
                         </div>
                     </div>
 
-                    <!-- Trình Độ Học Vị -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Trình Độ Học Vị / Bằng Cấp</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">workspace_premium</span>
-                            <input type="text" name="qualification" 
-                                   value="<?= htmlspecialchars($teacher['qualification'] ?? 'Cử nhân Sư phạm') ?>" 
-                                   placeholder="Cử nhân Sư phạm, Thạc sĩ..."
-                                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
-                        </div>
-                    </div>
-
-                    <!-- Ngày Bắt Đầu Công Tác -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Ngày Bắt Đầu Công Tác</label>
-                        <div class="relative">
-                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">event_available</span>
-                            <input type="date" name="start_date" 
-                                   value="<?= htmlspecialchars($teacher['start_date'] ?? date('Y-m-d')) ?>"
-                                   class="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white">
-                        </div>
-                    </div>
-
-                    <!-- Trạng Thái Làm Việc -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Trạng Thái Làm Việc</label>
-                        <select name="status" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-white">
-                            <option value="active" <?= ($teacher['status'] ?? 'active') === 'active' ? 'selected' : '' ?>>Đang Giảng Dạy</option>
-                            <option value="leave" <?= ($teacher['status'] ?? '') === 'leave' ? 'selected' : '' ?>>Nghỉ Phép / Tạm Nghỉ</option>
-                            <option value="resigned" <?= ($teacher['status'] ?? '') === 'resigned' ? 'selected' : '' ?>>Đã Nghỉ Việc</option>
-                        </select>
-                    </div>
-
-                    <!-- Phân Công Chủ Nhiệm (Nếu có) -->
-                    <div class="space-y-1.5">
-                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300">Phân Công Chủ Nhiệm</label>
-                        <select name="homeroom_class_id" class="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-emerald-600">
-                            <option value="">-- Không phân công chủ nhiệm --</option>
-                            <?php foreach ($classes as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= (($teacher['homeroom_class_id'] ?? '') == $c['id'] || ($teacher['id'] ?? 0) == ($c['homeroom_teacher_id'] ?? -1)) ? 'selected' : '' ?>><?= htmlspecialchars($c['name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Ngày Sinh</label>
+                        <input type="date" name="dob" 
+                               value="<?= htmlspecialchars($teacher['dob'] ?? '1988-01-01') ?>" 
+                               class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                 </div>
             </div>
-
-            <!-- Sticky Action Bar -->
-            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between shadow-lg">
-                <a href="<?= BASE_URL ?>/teachers" class="px-5 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold rounded-xl transition-colors">
-                    Hủy bỏ
-                </a>
-                <button type="submit" class="px-7 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-[18px]">save</span>
-                    <span><?= $isEdit ? 'Lưu Thay Đổi Hồ Sơ' : 'Lưu Giáo Viên Mới' ?></span>
-                </button>
+        </div>
+        <!-- SECTION 2: CHUYÊN MÔN & PHÂN CÔNG CHỦ NHIỆM (ĐÃ BỎ TRÌNH ĐỘ HỌC VẤN / BẰNG CẤP) -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm space-y-6">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">school</span>
+                </div>
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Chuyên Môn & Phân Công Chủ Nhiệm</h2>
+                    <p class="text-[11px] text-slate-400">Bộ môn phụ trách giảng dạy và phân công lớp chủ nhiệm</p>
+                </div>
             </div>
 
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Chuyên Môn Giảng Dạy <span class="text-rose-500">*</span>
+                    </label>
+                    <select name="specialization" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
+                        <?php 
+                        $specs = ['Toán Học', 'Ngữ Văn', 'Tiếng Anh', 'Vật Lý', 'Hóa Học', 'Sinh Học', 'Lịch Sử', 'Địa Lý', 'Tin Học', 'Giáo Dục Công Dân', 'Thể Dục', 'Âm Nhạc', 'Mỹ Thuật', 'Công Nghệ'];
+                        $curSpec = $teacher['specialization'] ?? 'Toán Học';
+                        foreach ($specs as $sp): ?>
+                        <option value="<?= $sp ?>" <?= $curSpec === $sp ? 'selected' : '' ?>><?= $sp ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                        Phân Công Lớp Chủ Nhiệm
+                    </label>
+                    <select name="homeroom_class_id" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
+                        <option value="">-- Không phân công chủ nhiệm --</option>
+                        <?php foreach ($classes as $c): ?>
+                        <option value="<?= $c['id'] ?>" <?= ($teacher['homeroom_class_id'] ?? '') == $c['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($c['name']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: LIÊN HỆ & TRẠNG THÁI CÔNG TÁC -->
+        <div class="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 md:p-8 shadow-sm space-y-6">
+            <div class="flex items-center gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center flex-shrink-0">
+                    <span class="material-symbols-outlined text-[18px]">contact_phone</span>
+                </div>
+                <div>
+                    <h2 class="text-sm font-extrabold text-slate-900 dark:text-white">Thông Tin Liên Lạc & Trạng Thái</h2>
+                    <p class="text-[11px] text-slate-400">Số điện thoại, email công vụ, địa chỉ và tình trạng công tác</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Số Điện Thoại</label>
+                    <input type="text" name="phone" 
+                           value="<?= htmlspecialchars($teacher['phone'] ?? '') ?>" 
+                           class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-mono font-bold text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" 
+                           placeholder="VD: 0987654321">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Email Liên Hệ</label>
+                    <input type="email" name="email" 
+                           value="<?= htmlspecialchars($teacher['email'] ?? '') ?>" 
+                           class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" 
+                           placeholder="VD: gv@edumanage.edu.vn">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Ngày Bắt Đầu Công Tác</label>
+                    <input type="date" name="start_date" 
+                           value="<?= htmlspecialchars($teacher['start_date'] ?? date('Y-m-d')) ?>" 
+                           class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-xs font-medium text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+
+                <div class="sm:col-span-3">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Địa Chỉ Thường Trú</label>
+                    <input type="text" name="address" 
+                           value="<?= htmlspecialchars($teacher['address'] ?? '') ?>" 
+                           class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs font-medium text-slate-800 dark:text-slate-100 focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none" 
+                           placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố">
+                </div>
+
+                <!-- Status Selector -->
+                <div class="sm:col-span-3">
+                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">Trạng Thái Công Tác</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all <?= $currentStatus === 'active' ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 ring-1 ring-emerald-500' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50' ?>">
+                            <input type="radio" name="status" value="active" <?= $currentStatus === 'active' ? 'checked' : '' ?> class="hidden" onchange="updateStatusStyle(this)">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[18px]">check_circle</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold">Đang công tác</p>
+                                <p class="text-[10px] text-slate-400">Giảng dạy bình thường</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all <?= $currentStatus === 'inactive' ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50' ?>">
+                            <input type="radio" name="status" value="inactive" <?= $currentStatus === 'inactive' ? 'checked' : '' ?> class="hidden" onchange="updateStatusStyle(this)">
+                            <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[18px]">pause_circle</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold">Tạm nghỉ</p>
+                                <p class="text-[10px] text-slate-400">Nghỉ phép / Thai sản</p>
+                            </div>
+                        </label>
+
+                        <label class="flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all <?= $currentStatus === 'retired' ? 'border-slate-400 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 ring-1 ring-slate-400' : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50' ?>">
+                            <input type="radio" name="status" value="retired" <?= $currentStatus === 'retired' ? 'checked' : '' ?> class="hidden" onchange="updateStatusStyle(this)">
+                            <div class="w-8 h-8 rounded-xl bg-slate-500/10 text-slate-500 flex items-center justify-center shrink-0">
+                                <span class="material-symbols-outlined text-[18px]">logout</span>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold">Nghỉ hưu</p>
+                                <p class="text-[10px] text-slate-400">Đã hoàn thành công tác</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. BOTTOM ACTION BUTTONS -->
+        <div class="flex items-center justify-end gap-3 pt-4">
+            <a href="<?= BASE_URL ?>/teachers" 
+               class="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold shadow-sm transition-all">
+                Hủy Bỏ
+            </a>
+            <button type="submit" id="btnSubmitTeacher" 
+                    class="inline-flex items-center gap-2 px-7 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 active:scale-[0.98] transition-all">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                <span><?= $isEdit ? 'Lưu Thay Đổi' : 'Thêm Mới Giáo Viên' ?></span>
+            </button>
         </div>
     </form>
 </div>
 
 <script>
-async function handleSubmitTeacherForm(e) {
-    e.preventDefault();
-    const form = e.target;
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
+    function previewTeacherImage(input) {
+        if (!input.files || !input.files[0]) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('avatarPreview').src = e.target.result;
+            document.getElementById('avatarInput').value = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
     }
 
-    const data = Object.fromEntries(new FormData(form).entries());
-    const url = <?= $isEdit ? "'".BASE_URL."/teachers/{$teacher['id']}'" : "'".BASE_URL."/teachers'" ?>;
-
-    const res = await apiPost(url, data);
-    if (res) {
-        showToast('<?= $isEdit ? 'Cập nhật giáo viên thành công!' : 'Thêm mới giáo viên thành công!' ?>', 'success');
-        setTimeout(() => {
-            window.location.href = '<?= BASE_URL ?>/teachers';
-        }, 800);
+    function updateGenderStyle(input) {
+        const isMale = input.value === 'male';
+        const labels = input.closest('.grid').querySelectorAll('label');
+        labels.forEach(l => {
+            l.className = 'flex items-center justify-center gap-2 p-2 rounded-xl border cursor-pointer transition-all border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600';
+        });
+        if (isMale) {
+            labels[0].className = 'flex items-center justify-center gap-2 p-2 rounded-xl border cursor-pointer transition-all border-blue-500 bg-blue-50/60 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 font-bold';
+        } else {
+            labels[1].className = 'flex items-center justify-center gap-2 p-2 rounded-xl border cursor-pointer transition-all border-rose-500 bg-rose-50/60 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold';
+        }
     }
-}
+
+    function updateStatusStyle(input) {
+        const labels = input.closest('.grid').querySelectorAll('label');
+        labels.forEach(l => {
+            l.className = 'flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all border-slate-200 dark:border-slate-700 hover:bg-slate-50';
+        });
+        const parent = input.closest('label');
+        if (input.value === 'active') {
+            parent.className = 'flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 ring-1 ring-emerald-500';
+        } else if (input.value === 'inactive') {
+            parent.className = 'flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all border-amber-500 bg-amber-50/50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 ring-1 ring-amber-500';
+        } else {
+            parent.className = 'flex items-center gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all border-slate-400 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 ring-1 ring-slate-400';
+        }
+    }
+
+    async function handleSubmitTeacherForm(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('btnSubmitTeacher');
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData.entries());
+
+        btn.disabled = true;
+        btn.innerHTML = `<span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></span><span>Đang lưu...</span>`;
+
+        const isEdit = Boolean(data.id);
+        const url = isEdit ? `<?= BASE_URL ?>/teachers/${data.id}` : '<?= BASE_URL ?>/teachers';
+
+        try {
+            const res = await apiPost(url, data);
+            if (res) {
+                setTimeout(() => window.location.href = '<?= BASE_URL ?>/teachers', 800);
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span><span>${isEdit ? 'Lưu Thay Đổi' : 'Thêm Mới Giáo Viên'}</span>`;
+            }
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-[18px]">save</span><span>${isEdit ? 'Lưu Thay Đổi' : 'Thêm Mới Giáo Viên'}</span>`;
+        }
+    }
 </script>
