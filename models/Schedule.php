@@ -22,6 +22,16 @@ class Schedule extends BaseModel {
         $pdo = self::getPdo();
         $excludeSql = $excludeId ? "AND id != {$excludeId}" : "";
 
+        $dayName = match($day) {
+            2 => 'Thứ Hai',
+            3 => 'Thứ Ba',
+            4 => 'Thứ Tư',
+            5 => 'Thứ Năm',
+            6 => 'Thứ Sáu',
+            7 => 'Thứ Bảy',
+            default => "Thứ {$day}"
+        };
+
         // 1. Check Teacher Clash
         $tSql = "SELECT sc.*, c.name as class_name, sub.name as subject_name 
                  FROM schedules sc 
@@ -33,7 +43,7 @@ class Schedule extends BaseModel {
         $stmt->execute([$teacherId, $day, $semesterId, $periodStart, $periodStart, $periodEnd, $periodEnd]);
         $teacherClash = $stmt->fetch();
         if ($teacherClash) {
-            return ['clash' => true, 'message' => "Giáo viên đã có tiết dạy tại lớp '{$teacherClash['class_name']}' môn '{$teacherClash['subject_name']}' vào Thứ {$day}, Tiết {$teacherClash['period_start']}–{$teacherClash['period_end']}."];
+            return ['clash' => true, 'message' => "Giáo viên đã có tiết dạy tại lớp '{$teacherClash['class_name']}' môn '{$teacherClash['subject_name']}' vào {$dayName}, Tiết {$teacherClash['period_start']}–{$teacherClash['period_end']}."];
         }
 
         // 2. Check Class Clash
@@ -47,7 +57,7 @@ class Schedule extends BaseModel {
         $stmt->execute([$classId, $day, $semesterId, $periodStart, $periodStart, $periodEnd, $periodEnd]);
         $classClash = $stmt->fetch();
         if ($classClash) {
-            return ['clash' => true, 'message' => "Lớp học đã có tiết '{$classClash['subject_name']}' (GV: {$classClash['teacher_name']}) vào Thứ {$day}, Tiết {$classClash['period_start']}–{$classClash['period_end']}."];
+            return ['clash' => true, 'message' => "Lớp học đã có tiết '{$classClash['subject_name']}' (GV: {$classClash['teacher_name']}) vào {$dayName}, Tiết {$classClash['period_start']}–{$classClash['period_end']}."];
         }
 
         // 3. Check Room Clash (if room specified)
@@ -61,7 +71,7 @@ class Schedule extends BaseModel {
             $stmt->execute([$room, $day, $semesterId, $periodStart, $periodStart, $periodEnd, $periodEnd]);
             $roomClash = $stmt->fetch();
             if ($roomClash) {
-                return ['clash' => true, 'message' => "Phòng học '{$room}' đã được xếp cho lớp '{$roomClash['class_name']}' vào Thứ {$day}, Tiết {$roomClash['period_start']}–{$roomClash['period_end']}."];
+                return ['clash' => true, 'message' => "Phòng học '{$room}' đã được xếp cho lớp '{$roomClash['class_name']}' vào {$dayName}, Tiết {$roomClash['period_start']}–{$roomClash['period_end']}."];
             }
         }
 

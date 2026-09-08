@@ -343,7 +343,7 @@ $todayYear = date('Y');
                                 <div class="font-extrabold text-slate-800 dark:text-slate-100"><?= htmlspecialchars($sub['name']) ?></div>
                                 <i data-lucide="chevrons-up-down" class="w-2.5 h-2.5 text-slate-400 group-hover:text-teal-500 transition-colors sort-icon" id="sortIcon_sub_<?= $sub['id'] ?>"></i>
                             </div>
-                            <div class="text-[9px] text-teal-600 dark:text-teal-400 font-mono font-black mt-0.5">(<?= htmlspecialchars($sub['code']) ?>)</div>
+                            
                         </th>
                         <?php endforeach; ?>
 

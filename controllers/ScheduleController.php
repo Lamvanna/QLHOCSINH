@@ -11,9 +11,13 @@ class ScheduleController extends BaseController {
         $subjects = Subject::all('name ASC');
         $teachers = Teacher::all('full_name ASC');
         $semesters = Semester::all('id ASC');
+        $academicYears = AcademicYear::all('id DESC');
 
         $classId = (int)$request->input('class_id', $classes[0]['id'] ?? 1);
-        $semesterId = (int)$request->input('semester_id', 2);
+        $semesterId = (int)$request->input('semester_id', $semesters[0]['id'] ?? 1);
+
+        $currentClass = SchoolClass::find($classId);
+        $currentSemester = Semester::find($semesterId);
 
         $timetable = Schedule::getClassTimetable($classId, $semesterId);
 
@@ -27,10 +31,38 @@ class ScheduleController extends BaseController {
             'subjects' => $subjects,
             'teachers' => $teachers,
             'semesters' => $semesters,
+            'academicYears' => $academicYears,
+            'currentClass' => $currentClass,
+            'currentSemester' => $currentSemester,
             'selectedClass' => $classId,
             'selectedSemester' => $semesterId,
             'timetable' => $timetable
         ]);
+    }
+
+    public function printSheet(Request $request): void {
+        $this->requireAuth();
+        $this->requirePermission('schedules.view');
+
+        $classes = SchoolClass::all('name ASC');
+        $semesters = Semester::all('id ASC');
+
+        $classId = (int)$request->input('class_id', $classes[0]['id'] ?? 1);
+        $semesterId = (int)$request->input('semester_id', $semesters[0]['id'] ?? 1);
+
+        $currentClass = SchoolClass::find($classId);
+        $currentSemester = Semester::find($semesterId);
+        $timetable = Schedule::getClassTimetable($classId, $semesterId);
+
+        View::render('schedules/print', [
+            'classes' => $classes,
+            'semesters' => $semesters,
+            'currentClass' => $currentClass,
+            'currentSemester' => $currentSemester,
+            'selectedClass' => $classId,
+            'selectedSemester' => $semesterId,
+            'timetable' => $timetable
+        ], 'none');
     }
 
     public function store(Request $request): void {
@@ -44,8 +76,13 @@ class ScheduleController extends BaseController {
         $dayOfWeek = (int)$data['day_of_week'];
         $periodStart = (int)$data['period_start'];
         $periodEnd = (int)$data['period_end'];
-        $semesterId = (int)($data['semester_id'] ?? 2);
-        $room = $data['room'] ?? '';
+        $semesterId = (int)($data['semester_id'] ?? 1);
+        $room = trim($data['room'] ?? '');
+
+        if ($periodStart > $periodEnd) {
+            Response::error("Tiết bắt đầu không thể lớn hơn tiết kết thúc.");
+            return;
+        }
 
         // Check for clashes
         $clashCheck = Schedule::checkClash($teacherId, $classId, $room, $dayOfWeek, $periodStart, $periodEnd, $semesterId);

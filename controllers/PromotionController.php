@@ -29,6 +29,32 @@ class PromotionController extends BaseController {
         ]);
     }
 
+    public function printSheet(Request $request): void {
+        $this->requireAuth();
+        $this->requirePermission('promotions.view');
+
+        $classes = SchoolClass::all('name ASC');
+        $years   = AcademicYear::all('id DESC');
+
+        $classId = (int)$request->input('class_id', $classes[0]['id'] ?? 1);
+        $academicYearId = (int)$request->input('academic_year_id', $years[0]['id'] ?? 1);
+
+        $currentClass = SchoolClass::find($classId);
+        $currentYear = AcademicYear::find($academicYearId);
+
+        $promotionData = Promotion::getClassPromotions($classId, $academicYearId);
+
+        View::render('promotions/print', [
+            'classes'        => $classes,
+            'years'          => $years,
+            'currentClass'   => $currentClass,
+            'currentYear'    => $currentYear,
+            'selectedClass'  => $classId,
+            'selectedYear'   => $academicYearId,
+            'promotionData'  => $promotionData
+        ], 'none');
+    }
+
     public function save(Request $request): void {
         $this->requireAuth();
         $this->requirePermission('promotions.evaluate');
